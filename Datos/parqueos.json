@@ -1,0 +1,14 @@
+[
+  {
+    "id": 1,
+    "nombre_provincia": "Cartago",
+    "nombre": "Parqueo Central Cartago",
+    "precio_por_hora": 1000.00
+  },
+  {
+    "id": 2,
+    "nombre_provincia": "San José",
+    "nombre": "Parqueo Avenida Central",
+    "precio_por_hora": 1500.00
+  }
+]

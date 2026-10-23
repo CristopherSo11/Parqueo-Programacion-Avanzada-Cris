@@ -1,0 +1,22 @@
+# Compilaciones de .NET
+**/bin/
+**/obj/
+
+# Archivos de Visual Studio
+.vs/
+*.user
+*.suo
+
+# Archivos temporales
+*.tmp
+*.log
+
+# Configuraciones locales y credenciales
+.env
+.env.*
+appsettings.Development.json
+secrets.json
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
