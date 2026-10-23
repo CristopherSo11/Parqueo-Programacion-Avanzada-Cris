@@ -59,6 +59,32 @@ public class IngresoJsonRepository : IIngresoAutomovilRepository
         return ingresos;
     }
 
+private async Task GuardarArchivoAsync(
+    List<PrqIngresoAutomovil> ingresos)
+{
+    var datosParaGuardar = ingresos.Select(i => new
+    {
+        consecutivo = i.Consecutivo,
+        id_parqueo = i.IdParqueo,
+        id_automovil = i.IdAutomovil,
+        fecha_hora_entrada = i.FechaHoraEntrada,
+        fecha_hora_salida = i.FechaHoraSalida
+    }).ToList();
+
+    var opcionesEscritura = new JsonSerializerOptions
+    {
+        WriteIndented = true
+    };
+
+    string contenido = JsonSerializer.Serialize(
+        datosParaGuardar,
+        opcionesEscritura);
+
+    await File.WriteAllTextAsync(
+        _rutaIngresos,
+        contenido);
+}
+
     public async Task<List<PrqIngresoAutomovil>> ObtenerTodosAsync()
     {
         return await LeerArchivoAsync();
@@ -117,23 +143,107 @@ public class IngresoJsonRepository : IIngresoAutomovilRepository
         ).ToList();
     }
 
-    public Task<PrqIngresoAutomovil> InsertarAsync(
-        PrqIngresoAutomovil ingreso)
+
+public async Task<PrqIngresoAutomovil> InsertarAsync(
+    PrqIngresoAutomovil ingreso)
+{
+    var ingresos = await LeerArchivoAsync();
+
+    var automovil = await _automovilRepository.ObtenerPorIdAsync(
+        ingreso.IdAutomovil);
+
+    var parqueo = await _parqueoRepository.ObtenerPorIdAsync(
+        ingreso.IdParqueo);
+
+    if (automovil == null || parqueo == null)
     {
-        throw new NotImplementedException(
-            "Pendiente para la etapa de CRUD.");
+        throw new ArgumentException(
+            "El automovil o el parqueo indicado no existe.");
     }
 
-    public Task<bool> ActualizarAsync(
-        PrqIngresoAutomovil ingreso)
+    if (ingreso.FechaHoraSalida.HasValue &&
+        ingreso.FechaHoraSalida.Value < ingreso.FechaHoraEntrada)
     {
-        throw new NotImplementedException(
-            "Pendiente para la etapa de CRUD.");
+        throw new ArgumentException(
+            "La fecha de salida no puede ser anterior a la entrada.");
     }
 
-    public Task<bool> EliminarAsync(int consecutivo)
+    ingreso.Consecutivo = ingresos.Count == 0
+        ? 1
+        : ingresos.Max(i => i.Consecutivo) + 1;
+
+    ingreso.IdAutomovilNavigation = automovil;
+    ingreso.IdParqueoNavigation = parqueo;
+
+    ingresos.Add(ingreso);
+
+    await GuardarArchivoAsync(ingresos);
+
+    return ingreso;
+}
+
+public async Task<bool> ActualizarAsync(
+    PrqIngresoAutomovil ingreso)
+{
+    var ingresos = await LeerArchivoAsync();
+
+    var existente = ingresos.FirstOrDefault(
+        i => i.Consecutivo == ingreso.Consecutivo);
+
+    if (existente == null)
     {
-        throw new NotImplementedException(
-            "Pendiente para la etapa de CRUD.");
+        return false;
     }
+
+    var automovil = await _automovilRepository.ObtenerPorIdAsync(
+        ingreso.IdAutomovil);
+
+    var parqueo = await _parqueoRepository.ObtenerPorIdAsync(
+        ingreso.IdParqueo);
+
+    if (automovil == null || parqueo == null)
+    {
+        throw new ArgumentException(
+            "El automovil o el parqueo indicado no existe.");
+    }
+
+    if (ingreso.FechaHoraSalida.HasValue &&
+        ingreso.FechaHoraSalida.Value < ingreso.FechaHoraEntrada)
+    {
+        throw new ArgumentException(
+            "La fecha de salida no puede ser anterior a la entrada.");
+    }
+
+    existente.IdAutomovil = ingreso.IdAutomovil;
+    existente.IdParqueo = ingreso.IdParqueo;
+    existente.FechaHoraEntrada = ingreso.FechaHoraEntrada;
+    existente.FechaHoraSalida = ingreso.FechaHoraSalida;
+
+    existente.IdAutomovilNavigation = automovil;
+    existente.IdParqueoNavigation = parqueo;
+
+    await GuardarArchivoAsync(ingresos);
+
+    return true;
+}
+
+public async Task<bool> EliminarAsync(int consecutivo)
+{
+    var ingresos = await LeerArchivoAsync();
+
+    var existente = ingresos.FirstOrDefault(
+        i => i.Consecutivo == consecutivo);
+
+    if (existente == null)
+    {
+        return false;
+    }
+
+    ingresos.Remove(existente);
+
+    await GuardarArchivoAsync(ingresos);
+
+    return true;
+}
+
 }

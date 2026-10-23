@@ -71,21 +71,77 @@ public class AutomovilJsonRepository : IAutomovilRepository
         ).ToList();
     }
 
-    public Task<PrqAutomovil> InsertarAsync(PrqAutomovil automovil)
+
+private async Task GuardarArchivoAsync(
+    List<PrqAutomovil> automoviles)
+{
+    string contenido = JsonSerializer.Serialize(
+        automoviles,
+        new JsonSerializerOptions
+        {
+            WriteIndented = true,
+            PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
+        });
+
+    await File.WriteAllTextAsync(_rutaArchivo, contenido);
+}
+
+public async Task<PrqAutomovil> InsertarAsync(
+    PrqAutomovil automovil)
+{
+    var automoviles = await LeerArchivoAsync();
+
+    automovil.Id = automoviles.Count == 0
+        ? 1
+        : automoviles.Max(a => a.Id) + 1;
+
+    automoviles.Add(automovil);
+
+    await GuardarArchivoAsync(automoviles);
+
+    return automovil;
+}
+
+public async Task<bool> ActualizarAsync(
+    PrqAutomovil automovil)
+{
+    var automoviles = await LeerArchivoAsync();
+
+    var existente = automoviles.FirstOrDefault(
+        a => a.Id == automovil.Id);
+
+    if (existente == null)
     {
-        throw new NotImplementedException(
-            "Pendiente para la etapa de CRUD.");
+        return false;
     }
 
-    public Task<bool> ActualizarAsync(PrqAutomovil automovil)
+    existente.Color = automovil.Color;
+    existente.Anio = automovil.Anio;
+    existente.Fabricante = automovil.Fabricante;
+    existente.Tipo = automovil.Tipo;
+
+    await GuardarArchivoAsync(automoviles);
+
+    return true;
+}
+
+public async Task<bool> EliminarAsync(int id)
+{
+    var automoviles = await LeerArchivoAsync();
+
+    var existente = automoviles.FirstOrDefault(
+        a => a.Id == id);
+
+    if (existente == null)
     {
-        throw new NotImplementedException(
-            "Pendiente para la etapa de CRUD.");
+        return false;
     }
 
-    public Task<bool> EliminarAsync(int id)
-    {
-        throw new NotImplementedException(
-            "Pendiente para la etapa de CRUD.");
-    }
+    automoviles.Remove(existente);
+
+    await GuardarArchivoAsync(automoviles);
+
+    return true;
+}
+
 }

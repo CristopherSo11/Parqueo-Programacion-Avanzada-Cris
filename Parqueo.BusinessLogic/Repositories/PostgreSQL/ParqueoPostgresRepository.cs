@@ -74,21 +74,48 @@ public class ParqueoPostgresRepository : IParqueoRepository
             .FirstOrDefaultAsync();
     }
 
-    public Task<PrqParqueo> InsertarAsync(PrqParqueo parqueo)
+
+public async Task<PrqParqueo> InsertarAsync(PrqParqueo parqueo)
+{
+    await _context.PrqParqueos.AddAsync(parqueo);
+    await _context.SaveChangesAsync();
+
+    return parqueo;
+}
+
+public async Task<bool> ActualizarAsync(PrqParqueo parqueo)
+{
+    var existente = await _context.PrqParqueos
+        .FirstOrDefaultAsync(p => p.Id == parqueo.Id);
+
+    if (existente == null)
     {
-        throw new NotImplementedException(
-            "Pendiente para la etapa de CRUD.");
+        return false;
     }
 
-    public Task<bool> ActualizarAsync(PrqParqueo parqueo)
+    existente.NombreProvincia = parqueo.NombreProvincia;
+    existente.Nombre = parqueo.Nombre;
+    existente.PrecioPorHora = parqueo.PrecioPorHora;
+
+    await _context.SaveChangesAsync();
+
+    return true;
+}
+
+public async Task<bool> EliminarAsync(int id)
+{
+    var existente = await _context.PrqParqueos
+        .FirstOrDefaultAsync(p => p.Id == id);
+
+    if (existente == null)
     {
-        throw new NotImplementedException(
-            "Pendiente para la etapa de CRUD.");
+        return false;
     }
 
-    public Task<bool> EliminarAsync(int id)
-    {
-        throw new NotImplementedException(
-            "Pendiente para la etapa de CRUD.");
-    }
+    _context.PrqParqueos.Remove(existente);
+    await _context.SaveChangesAsync();
+
+    return true;
+}
+
 }

@@ -96,23 +96,90 @@ public class IngresoPostgresRepository : IIngresoAutomovilRepository
             .Include(i => i.IdParqueoNavigation);
     }
 
-    public Task<PrqIngresoAutomovil> InsertarAsync(
-        PrqIngresoAutomovil ingreso)
+
+public async Task<PrqIngresoAutomovil> InsertarAsync(
+    PrqIngresoAutomovil ingreso)
+{
+    bool existeAutomovil = await _context.PrqAutomovils
+        .AnyAsync(a => a.Id == ingreso.IdAutomovil);
+
+    bool existeParqueo = await _context.PrqParqueos
+        .AnyAsync(p => p.Id == ingreso.IdParqueo);
+
+    if (!existeAutomovil || !existeParqueo)
     {
-        throw new NotImplementedException(
-            "Pendiente para la etapa de CRUD.");
+        throw new ArgumentException(
+            "El automovil o el parqueo indicado no existe.");
     }
 
-    public Task<bool> ActualizarAsync(
-        PrqIngresoAutomovil ingreso)
+    if (ingreso.FechaHoraSalida.HasValue &&
+        ingreso.FechaHoraSalida.Value < ingreso.FechaHoraEntrada)
     {
-        throw new NotImplementedException(
-            "Pendiente para la etapa de CRUD.");
+        throw new ArgumentException(
+            "La fecha de salida no puede ser anterior a la entrada.");
     }
 
-    public Task<bool> EliminarAsync(int consecutivo)
+    await _context.PrqIngresoAutomovils.AddAsync(ingreso);
+    await _context.SaveChangesAsync();
+
+    return ingreso;
+}
+
+public async Task<bool> ActualizarAsync(
+    PrqIngresoAutomovil ingreso)
+{
+    var existente = await _context.PrqIngresoAutomovils
+        .FirstOrDefaultAsync(
+            i => i.Consecutivo == ingreso.Consecutivo);
+
+    if (existente == null)
     {
-        throw new NotImplementedException(
-            "Pendiente para la etapa de CRUD.");
+        return false;
     }
+
+    bool existeAutomovil = await _context.PrqAutomovils
+        .AnyAsync(a => a.Id == ingreso.IdAutomovil);
+
+    bool existeParqueo = await _context.PrqParqueos
+        .AnyAsync(p => p.Id == ingreso.IdParqueo);
+
+    if (!existeAutomovil || !existeParqueo)
+    {
+        throw new ArgumentException(
+            "El automovil o el parqueo indicado no existe.");
+    }
+
+    if (ingreso.FechaHoraSalida.HasValue &&
+        ingreso.FechaHoraSalida.Value < ingreso.FechaHoraEntrada)
+    {
+        throw new ArgumentException(
+            "La fecha de salida no puede ser anterior a la entrada.");
+    }
+
+    existente.IdAutomovil = ingreso.IdAutomovil;
+    existente.IdParqueo = ingreso.IdParqueo;
+    existente.FechaHoraEntrada = ingreso.FechaHoraEntrada;
+    existente.FechaHoraSalida = ingreso.FechaHoraSalida;
+
+    await _context.SaveChangesAsync();
+
+    return true;
+}
+
+public async Task<bool> EliminarAsync(int consecutivo)
+{
+    var existente = await _context.PrqIngresoAutomovils
+        .FirstOrDefaultAsync(i => i.Consecutivo == consecutivo);
+
+    if (existente == null)
+    {
+        return false;
+    }
+
+    _context.PrqIngresoAutomovils.Remove(existente);
+    await _context.SaveChangesAsync();
+
+    return true;
+}
+
 }

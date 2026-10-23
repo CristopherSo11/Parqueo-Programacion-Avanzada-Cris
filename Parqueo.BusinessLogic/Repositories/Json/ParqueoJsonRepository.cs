@@ -80,21 +80,77 @@ public class ParqueoJsonRepository : IParqueoRepository
         return parqueo?.PrecioPorHora;
     }
 
-    public Task<PrqParqueo> InsertarAsync(PrqParqueo parqueo)
+
+private async Task GuardarArchivoAsync(
+    List<PrqParqueo> parqueos)
+{
+    var opcionesEscritura = new JsonSerializerOptions
     {
-        throw new NotImplementedException(
-            "Pendiente para la etapa de CRUD.");
+        WriteIndented = true,
+        PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
+    };
+
+    string contenido = JsonSerializer.Serialize(
+        parqueos, opcionesEscritura);
+
+    await File.WriteAllTextAsync(_rutaArchivo, contenido);
+}
+
+public async Task<PrqParqueo> InsertarAsync(
+    PrqParqueo parqueo)
+{
+    var parqueos = await LeerArchivoAsync();
+
+    parqueo.Id = parqueos.Count == 0
+        ? 1
+        : parqueos.Max(p => p.Id) + 1;
+
+    parqueos.Add(parqueo);
+
+    await GuardarArchivoAsync(parqueos);
+
+    return parqueo;
+}
+
+public async Task<bool> ActualizarAsync(
+    PrqParqueo parqueo)
+{
+    var parqueos = await LeerArchivoAsync();
+
+    var existente = parqueos.FirstOrDefault(
+        p => p.Id == parqueo.Id);
+
+    if (existente == null)
+    {
+        return false;
     }
 
-    public Task<bool> ActualizarAsync(PrqParqueo parqueo)
+    existente.NombreProvincia = parqueo.NombreProvincia;
+    existente.Nombre = parqueo.Nombre;
+    existente.PrecioPorHora = parqueo.PrecioPorHora;
+
+    await GuardarArchivoAsync(parqueos);
+
+    return true;
+}
+
+public async Task<bool> EliminarAsync(int id)
+{
+    var parqueos = await LeerArchivoAsync();
+
+    var existente = parqueos.FirstOrDefault(
+        p => p.Id == id);
+
+    if (existente == null)
     {
-        throw new NotImplementedException(
-            "Pendiente para la etapa de CRUD.");
+        return false;
     }
 
-    public Task<bool> EliminarAsync(int id)
-    {
-        throw new NotImplementedException(
-            "Pendiente para la etapa de CRUD.");
-    }
+    parqueos.Remove(existente);
+
+    await GuardarArchivoAsync(parqueos);
+
+    return true;
+}
+
 }

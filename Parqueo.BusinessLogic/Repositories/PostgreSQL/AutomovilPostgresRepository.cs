@@ -72,21 +72,48 @@ public class AutomovilPostgresRepository : IAutomovilRepository
         return await consulta.ToListAsync();
     }
 
-    public Task<PrqAutomovil> InsertarAsync(PrqAutomovil automovil)
+
+public async Task<PrqAutomovil> InsertarAsync(PrqAutomovil automovil)
+{
+    await _context.PrqAutomovils.AddAsync(automovil);
+    await _context.SaveChangesAsync();
+
+    return automovil;
+}
+
+public async Task<bool> ActualizarAsync(PrqAutomovil automovil)
+{
+    var existente = await _context.PrqAutomovils
+        .FirstOrDefaultAsync(a => a.Id == automovil.Id);
+
+    if (existente == null)
     {
-        throw new NotImplementedException(
-            "Pendiente para la etapa de CRUD.");
+        return false;
     }
 
-    public Task<bool> ActualizarAsync(PrqAutomovil automovil)
+    existente.Color = automovil.Color;
+    existente.Anio = automovil.Anio;
+    existente.Fabricante = automovil.Fabricante;
+    existente.Tipo = automovil.Tipo;
+
+    await _context.SaveChangesAsync();
+
+    return true;
+}
+
+public async Task<bool> EliminarAsync(int id)
+{
+    var existente = await _context.PrqAutomovils
+        .FirstOrDefaultAsync(a => a.Id == id);
+
+    if (existente == null)
     {
-        throw new NotImplementedException(
-            "Pendiente para la etapa de CRUD.");
+        return false;
     }
 
-    public Task<bool> EliminarAsync(int id)
-    {
-        throw new NotImplementedException(
-            "Pendiente para la etapa de CRUD.");
-    }
+    _context.PrqAutomovils.Remove(existente);
+    await _context.SaveChangesAsync();
+
+    return true;
+}
 }
