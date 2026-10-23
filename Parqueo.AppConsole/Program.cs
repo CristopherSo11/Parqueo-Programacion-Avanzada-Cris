@@ -86,6 +86,75 @@ try
             $"Monto: {monto}");
     }
 
+Console.WriteLine("\n=== Ingresos PostgreSQL por provincia ===");
+
+var ingresosCartagoPostgres =
+    await ingresoRepository.FiltrarPorProvinciaYFechasAsync(
+        "Cartago", null, null);
+
+Console.WriteLine(
+    $"Ingresos en Cartago: {ingresosCartagoPostgres.Count}");
+
+foreach (var ingreso in ingresosCartagoPostgres)
+{
+    decimal? tarifa = await parqueoRepository
+        .ObtenerPrecioPorHoraPorParqueo(ingreso.IdParqueo);
+
+    decimal? monto = ingreso.DuracionHoras.HasValue
+        && tarifa.HasValue
+            ? (decimal)ingreso.DuracionHoras.Value * tarifa.Value
+            : null;
+
+    string salida = ingreso.FechaHoraSalida.HasValue
+        ? ingreso.FechaHoraSalida.Value.ToString("g")
+        : "Pendiente";
+
+    string montoTexto = monto.HasValue
+        ? monto.Value.ToString("N2")
+        : "Pendiente";
+
+    Console.WriteLine(
+        $"  Ingreso {ingreso.Consecutivo} - " +
+        $"Entrada: {ingreso.FechaHoraEntrada:g} - " +
+        $"Salida: {salida} - " +
+        $"Monto: {montoTexto}");
+}
+
+Console.WriteLine("\n=== Ingresos PostgreSQL por tipo de automóvil ===");
+
+var ingresosSedanPostgres =
+    await ingresoRepository.FiltrarPorTipoYFechasAsync(
+        "sedán", null, null);
+
+Console.WriteLine(
+    $"Ingresos de automóviles sedán: {ingresosSedanPostgres.Count}");
+
+foreach (var ingreso in ingresosSedanPostgres)
+{
+    decimal? tarifa = await parqueoRepository
+        .ObtenerPrecioPorHoraPorParqueo(ingreso.IdParqueo);
+
+    decimal? monto = ingreso.DuracionHoras.HasValue
+        && tarifa.HasValue
+            ? (decimal)ingreso.DuracionHoras.Value * tarifa.Value
+            : null;
+
+    string salida = ingreso.FechaHoraSalida.HasValue
+        ? ingreso.FechaHoraSalida.Value.ToString("g")
+        : "Pendiente";
+
+    string montoTexto = monto.HasValue
+        ? monto.Value.ToString("N2")
+        : "Pendiente";
+
+    Console.WriteLine(
+        $"  Ingreso {ingreso.Consecutivo} - " +
+        $"Tipo: {ingreso.IdAutomovilNavigation.Tipo} - " +
+        $"Entrada: {ingreso.FechaHoraEntrada:g} - " +
+        $"Salida: {salida} - " +
+        $"Monto: {montoTexto}");
+}
+
     Console.WriteLine("\nPrueba finalizada correctamente.");
 }
 catch (Exception ex)
@@ -230,6 +299,65 @@ try
 
     Console.WriteLine(
         $"Ingresos en Cartago: {ingresosCartago.Count}");
+        
+foreach (var ingreso in ingresosCartago)
+{
+    decimal? tarifa = await parqueoJsonRepo
+        .ObtenerPrecioPorHoraPorParqueo(ingreso.IdParqueo);
+
+    decimal? monto = ingreso.DuracionHoras.HasValue
+        && tarifa.HasValue
+            ? (decimal)ingreso.DuracionHoras.Value * tarifa.Value
+            : null;
+
+    string salida = ingreso.FechaHoraSalida.HasValue
+        ? ingreso.FechaHoraSalida.Value.ToString("g")
+        : "Pendiente";
+
+    string montoTexto = monto.HasValue
+        ? monto.Value.ToString("N2")
+        : "Pendiente";
+
+    Console.WriteLine(
+        $"  Ingreso {ingreso.Consecutivo} - " +
+        $"Entrada: {ingreso.FechaHoraEntrada:g} - " +
+        $"Salida: {salida} - " +
+        $"Monto: {montoTexto}");
+}
+
+Console.WriteLine("\n=== Ingresos JSON por tipo de automóvil ===");
+
+var ingresosSedan = await ingresoJsonRepo
+    .FiltrarPorTipoYFechasAsync("sedán", null, null);
+
+Console.WriteLine(
+    $"Ingresos de automóviles sedán: {ingresosSedan.Count}");
+
+foreach (var ingreso in ingresosSedan)
+{
+    decimal? tarifa = await parqueoJsonRepo
+        .ObtenerPrecioPorHoraPorParqueo(ingreso.IdParqueo);
+
+    decimal? monto = ingreso.DuracionHoras.HasValue
+        && tarifa.HasValue
+            ? (decimal)ingreso.DuracionHoras.Value * tarifa.Value
+            : null;
+
+    string salida = ingreso.FechaHoraSalida.HasValue
+        ? ingreso.FechaHoraSalida.Value.ToString("g")
+        : "Pendiente";
+
+    string montoTexto = monto.HasValue
+        ? monto.Value.ToString("N2")
+        : "Pendiente";
+
+    Console.WriteLine(
+        $"  Ingreso {ingreso.Consecutivo} - " +
+        $"Tipo: {ingreso.IdAutomovilNavigation.Tipo} - " +
+        $"Entrada: {ingreso.FechaHoraEntrada:g} - " +
+        $"Salida: {salida} - " +
+        $"Monto: {montoTexto}");
+}
 }
 catch (Exception ex)
 {
