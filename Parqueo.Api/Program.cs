@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Parqueo.BusinessLogic.Interfaces;
 using Parqueo.BusinessLogic.Repositories.PostgreSQL;
 using Parqueo.Model.Context;
+using Parqueo.BusinessLogic.Repositories.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,7 +23,29 @@ builder.Services.AddDbContext<ParqueoDbContext>(options =>
     options.UseNpgsql(conexion));
 
 // Registrar nuestro repositorio de automóviles.
-builder.Services.AddScoped<IAutomovilRepository, AutomovilPostgresRepository>();
+var proveedorAutomoviles =
+    builder.Configuration["ProveedorAutomoviles"] ?? "PostgreSQL";
+
+if (proveedorAutomoviles.Equals(
+    "JSON", StringComparison.OrdinalIgnoreCase))
+{
+    builder.Services.AddScoped<IAutomovilRepository>(sp =>
+    {
+        var rutaArchivo = Path.Combine(
+            builder.Environment.ContentRootPath,
+            "..",
+            "DatosPruebas",
+            "automoviles.json");
+
+        return new AutomovilJsonRepository(
+            Path.GetFullPath(rutaArchivo));
+    });
+}
+else
+{
+    builder.Services.AddScoped<IAutomovilRepository,
+        AutomovilPostgresRepository>();
+}
 
 var app = builder.Build();
 
