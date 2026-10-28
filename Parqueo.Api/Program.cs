@@ -3,12 +3,18 @@ using Parqueo.BusinessLogic.Interfaces;
 using Parqueo.BusinessLogic.Repositories.PostgreSQL;
 using Parqueo.Model.Context;
 using Parqueo.BusinessLogic.Repositories.Json;
+using System.Text.Json.Serialization;
 
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Habilitar los controladores de nuestra API.
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler =
+            ReferenceHandler.IgnoreCycles;
+    });
 
 // Leer la conexión PostgreSQL desde User Secrets.
 var conexion = builder.Configuration.GetConnectionString("ParqueoDB");
@@ -68,6 +74,7 @@ else
     builder.Services.AddScoped<IAutomovilRepository,
         AutomovilPostgresRepository>();
 }
+builder.Services.AddScoped<IIngresoAutomovilRepository, IngresoPostgresRepository>();
 
 var app = builder.Build();
 
