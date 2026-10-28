@@ -22,7 +22,28 @@ if (string.IsNullOrWhiteSpace(conexion))
 // Configurar Entity Framework Core con PostgreSQL.
 builder.Services.AddDbContext<ParqueoDbContext>(options =>
     options.UseNpgsql(conexion));
-builder.Services.AddScoped<IParqueoRepository, ParqueoPostgresRepository>();
+var proveedorParqueos =
+    builder.Configuration["ProveedorParqueos"] ?? "PostgreSQL";
+
+if (proveedorParqueos.Equals(
+    "JSON", StringComparison.OrdinalIgnoreCase))
+{
+    builder.Services.AddScoped<IParqueoRepository>(sp =>
+    {
+        var rutaArchivo = Path.Combine(
+            builder.Environment.ContentRootPath,
+            "..",
+            "DatosPruebas",
+            "parqueos.json");
+
+        return new ParqueoJsonRepository(
+            Path.GetFullPath(rutaArchivo));
+    });
+}
+else
+{
+    builder.Services.AddScoped<IParqueoRepository, ParqueoPostgresRepository>();
+}
 // Registrar nuestro repositorio de automóviles.
 var proveedorAutomoviles =
     builder.Configuration["ProveedorAutomoviles"] ?? "PostgreSQL";
