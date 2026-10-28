@@ -14,19 +14,21 @@ public class AutomovilPostgresRepository : IAutomovilRepository
         _context = context;
     }
 
-    public async Task<List<PrqAutomovil>> ObtenerTodosAsync()
-    {
-        return await _context.PrqAutomovils
-            .AsNoTracking()
-            .ToListAsync();
-    }
+public async Task<List<PrqAutomovil>> ObtenerTodosAsync()
+{
+    return await _context.PrqAutomovils
+        .AsNoTracking()
+        .Include(a => a.PrqIngresoAutomovils)
+        .ToListAsync();
+}
 
-    public async Task<PrqAutomovil?> ObtenerPorIdAsync(int id)
-    {
-        return await _context.PrqAutomovils
-            .AsNoTracking()
-            .FirstOrDefaultAsync(a => a.Id == id);
-    }
+public async Task<PrqAutomovil?> ObtenerPorIdAsync(int id)
+{
+    return await _context.PrqAutomovils
+        .AsNoTracking()
+        .Include(a => a.PrqIngresoAutomovils)
+        .FirstOrDefaultAsync(a => a.Id == id);
+}
 
     public async Task<List<PrqAutomovil>> FiltrarAsync(
         string? color = null,

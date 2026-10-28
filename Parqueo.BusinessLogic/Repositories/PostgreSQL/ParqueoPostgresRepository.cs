@@ -13,20 +13,20 @@ public class ParqueoPostgresRepository : IParqueoRepository
     {
         _context = context;
     }
-
-    public async Task<List<PrqParqueo>> ObtenerTodosAsync()
-    {
-        return await _context.PrqParqueos
-            .AsNoTracking()
-            .ToListAsync();
-    }
-
-    public async Task<PrqParqueo?> ObtenerPorIdAsync(int id)
-    {
-        return await _context.PrqParqueos
-            .AsNoTracking()
-            .FirstOrDefaultAsync(p => p.Id == id);
-    }
+public async Task<List<PrqParqueo>> ObtenerTodosAsync()
+{
+    return await _context.PrqParqueos
+        .AsNoTracking()
+        .Include(p => p.PrqIngresoAutomovils)
+        .ToListAsync();
+}
+public async Task<PrqParqueo?> ObtenerPorIdAsync(int id)
+{
+    return await _context.PrqParqueos
+        .AsNoTracking()
+        .Include(p => p.PrqIngresoAutomovils)
+        .FirstOrDefaultAsync(p => p.Id == id);
+}
 
     public async Task<List<PrqParqueo>> FiltrarAsync(
         string? provincia = null,
