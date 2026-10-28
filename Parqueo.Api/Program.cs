@@ -74,7 +74,39 @@ else
     builder.Services.AddScoped<IAutomovilRepository,
         AutomovilPostgresRepository>();
 }
-builder.Services.AddScoped<IIngresoAutomovilRepository, IngresoPostgresRepository>();
+
+var proveedorIngresos =
+    builder.Configuration["ProveedorIngresos"] ?? "PostgreSQL";
+
+if (proveedorIngresos.Equals(
+    "JSON", StringComparison.OrdinalIgnoreCase))
+{
+    builder.Services.AddScoped<IIngresoAutomovilRepository>(sp =>
+    {
+        var rutaArchivo = Path.Combine(
+            builder.Environment.ContentRootPath,
+            "..",
+            "DatosPruebas",
+            "ingresos-automoviles.json");
+
+        var automovilRepository =
+            sp.GetRequiredService<IAutomovilRepository>();
+
+        var parqueoRepository =
+            sp.GetRequiredService<IParqueoRepository>();
+
+        return new IngresoJsonRepository(
+            Path.GetFullPath(rutaArchivo),
+            automovilRepository,
+            parqueoRepository);
+    });
+}
+else
+{
+    builder.Services.AddScoped<IIngresoAutomovilRepository,
+        IngresoPostgresRepository>();
+}
+
 
 var app = builder.Build();
 
