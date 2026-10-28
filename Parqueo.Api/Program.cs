@@ -4,6 +4,7 @@ using Parqueo.BusinessLogic.Repositories.PostgreSQL;
 using Parqueo.Model.Context;
 using Parqueo.BusinessLogic.Repositories.Json;
 
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Habilitar los controladores de nuestra API.
@@ -21,7 +22,7 @@ if (string.IsNullOrWhiteSpace(conexion))
 // Configurar Entity Framework Core con PostgreSQL.
 builder.Services.AddDbContext<ParqueoDbContext>(options =>
     options.UseNpgsql(conexion));
-
+builder.Services.AddScoped<IParqueoRepository, ParqueoPostgresRepository>();
 // Registrar nuestro repositorio de automóviles.
 var proveedorAutomoviles =
     builder.Configuration["ProveedorAutomoviles"] ?? "PostgreSQL";
